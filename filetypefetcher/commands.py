@@ -1,12 +1,12 @@
-import argparse
 import multiprocessing as mp
+import argparse
 from os import path
 
 
 def init_parser():
     parser = argparse.ArgumentParser(
-        description="Python package that downloads files from common\
-        crawler's database. Only a few extensions are currently supported."
+        description="Python package that downloads files from common \
+        crawler's database. Only a few extensions are currently supported"
     )
 
     parser.add_argument(
@@ -51,7 +51,7 @@ def init_parser():
 def validate_args(args):
     if args.limit <= 0:
         print("Limit (-l,--limit) must be a positive number")
-        return 1
+        return -1
 
     # if they want more processes than what's detected
     if args.num_procs > mp.cpu_count():
@@ -60,31 +60,29 @@ def validate_args(args):
             + str(mp.cpu_count())
             + " cores"
         )
-        return 1
+        return -1
+    if not path.exists(args.output):
+        print("Expected output (-o,--output) to be an existing directory")
+        return -1
 
     if not path.isdir(args.output):
-        print("Expected output (-o,--output) to be an existing directory")
-        return 1
+        print("Expected output (-o,--output) to be a directory")
+        return -1
 
+    if args.output[-1] != "/":
+        args.output += "/"
     return 0
 
 
-def main():
+def get_validated_args():
     # initialize parser and parse arguments using argparse library
     parser = init_parser()
     args = parser.parse_args()
 
-    validate_args(args)
+    if validate_args(args) == -1:
+        print("validate_args() has failed")
+        return -1
 
-    # limit = args.limit NOTE: This variable was never used.
-    filetypes = args.filetypes
-    # num_procs = args.num_procs NOTE: This variable was never used.
-
-    # dict of # of files per filetype
-    file_count = {}
-    for ext in filetypes:
-        file_count[ext] = 0
+    return args
 
 
-if __name__ == "__main__":
-    main()
