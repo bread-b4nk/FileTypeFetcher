@@ -1,6 +1,10 @@
 # FileTypeFetcher (FTF)
 Downloads desired filetypes from Common Crawl data
 
+
+
+by default we prioritize those with Content Types that signify the filetype over the extension, we store corresponding content types for file types in filetype_config.json
+
 # Contributing
 
 - Package installation uses [poetry](https://python-poetry.org/docs/basic-usage/), but this is subject to change in the future. 
