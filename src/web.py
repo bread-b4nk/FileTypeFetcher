@@ -1,6 +1,7 @@
 import gzip
 import hashlib
 import json
+import logging
 import os
 
 import requests
@@ -15,7 +16,7 @@ https://index.commoncrawl.org/CC-MAIN-2023-14-index
 # change this url if they move the json file for index links
 INDEX_FILES_URL = "https://index.commoncrawl.org/collinfo.json"
 index_host = "https://data.commoncrawl.org/"
-index_path = "crawl_data/ID/cc-index.paths.gz"
+index_path = "crawl-data/ID/cc-index.paths.gz"
 INDEX_PATHS_URL = index_host + index_path
 
 READ_BLOCK_SIZE = 65536
@@ -48,25 +49,26 @@ def get_index_urls():
     try:
         response = requests.get(INDEX_FILES_URL, timeout=5)
     except Exception as err:
-        print(err)
-        print("requests.get from response library failed")
+        logging.error("requests.get failed to get " + INDEX_FILES_URL)
+        logging.error(err)
         return {}
 
     if response.status_code != 200:
-        print(
+        logging.error(
             "requests.get got a status code of "
             + str(response.status_code)
             + " for url: "
             + INDEX_FILES_URL
         )
+
         return {}
 
     # should error check index response
     try:
         json_data = json.loads(response.content)
     except Exception as err:
-        print(err)
-        print(INDEX_FILES_URL + " failed with json.loads")
+        logging.error("json couldn't parse content in " + INDEX_FILES_URL)
+        logging.error(err)
         return {}
 
     # store dict from name of index file to url
@@ -101,13 +103,13 @@ def download_and_ungzip(tmp_name, url, out_dir, output_file_name):
     try:
         response = requests.get(url.strip(" ").strip("\n"))
     except Exception as err:
-        print(err)
-        print("response.get from response library failed")
+        logging.error("requests.get failed with " + url.strip(" ").strip("\n"))
+        logging.error(err)
         return ""
 
     if response.status_code != 200:
-        print("response.get got a status code of " + str(response.status_code))
-        print(response.content)
+        logging.error("requests.get got status " + str(response.status_code))
+
         return ""
 
     # path to output file
@@ -116,7 +118,7 @@ def download_and_ungzip(tmp_name, url, out_dir, output_file_name):
     # write gzip to file
     gz = open(gz_path, "wb")
 
-    print("url: " + url)
+    logging.debug("url: " + url)
     gz.write(response.content)
 
     gz.close()
@@ -145,21 +147,30 @@ output file if successful
 
 
 def save_file(url, out_dir, filetype):
-    print("trying to download: " + url)
+    logging.debug("Downloading " + url + " to " + filetype + " directory")
+
     if out_dir[-1] != "/":
         out_dir += "/"
 
     try:
         response = requests.get(url)
     except Exception as err:
-        print(err)
-        print("save_file's requests.get failed with url: " + url)
+        logging.error("requests.get failed with " + url)
+        logging.error(err)
         return -1
 
     if response.status_code != 200:
+        logging.error(
+            "requests.get got a status code of "
+            + str(response.status_code)
+            + " for url: "
+            + INDEX_FILES_URL
+        )
         return -1
 
     tmp_filename = out_dir + url.split("/")[-1]
+
+    logging.debug("Temporary filename: " + tmp_filename)
 
     # write bytes to a temporary file
     tmp_write = open(tmp_filename, "wb")
@@ -180,6 +191,8 @@ def save_file(url, out_dir, filetype):
     os.remove(tmp_filename)
 
     filename = md5_hash.hexdigest()
+
+    logging.debug("Writing file to " + out_dir + filename + "." + filetype)
 
     # save image with the md5 as its name
     out_file = open(out_dir + filename + "." + filetype, "wb")
