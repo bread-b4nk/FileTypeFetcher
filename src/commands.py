@@ -1,6 +1,6 @@
-import multiprocessing as mp
 import argparse
-from os import path
+import multiprocessing as mp
+from os import mkdir, path
 
 
 def init_parser():
@@ -44,6 +44,15 @@ def init_parser():
         type=str,
     )
 
+    parser.add_argument(
+        "-t",
+        "--tolerance",
+        help="Number of fails for a given hostname before it's ignored",
+        required=False,
+        type=int,
+        default=10,
+    )
+
     return parser
 
 
@@ -61,10 +70,20 @@ def validate_args(args):
             + " cores"
         )
         return -1
-    if not path.exists(args.output):
-        print("Expected output (-o,--output) to be an existing directory")
-        return -1
 
+    # create output directory if it doesn't exist
+    if not path.exists(args.output):
+        try:
+            mkdir(args.output)
+        except FileNotFoundError:
+            print("Output directory (-o,--output) is an invalid file path")
+            return -1
+        except Exception as err:
+            print("Error trying to create output directory (-o,--output)")
+            print(err)
+            return -1
+
+    # verify output directory is a directory
     if not path.isdir(args.output):
         print("Expected output (-o,--output) to be a directory")
         return -1
@@ -72,6 +91,14 @@ def validate_args(args):
     if args.output[-1] != "/":
         args.output += "/"
     return 0
+
+    if args.tolerance <= 0:
+        print(
+            "Dude how can the tolerance (-t, --tolerance)  be <= 0? "
+            + "It's the number of failed download attempts from "
+            + "a given hostname before we skip files from that hostname."
+        )
+        return -1
 
 
 def get_validated_args():
@@ -84,5 +111,3 @@ def get_validated_args():
         return -1
 
     return args
-
-

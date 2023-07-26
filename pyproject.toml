@@ -1,13 +1,14 @@
 [tool.poetry]
-name = "filetypefetcher"
+name = "filetype-fetcher"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Fetches files of desired type from common crawler's database"
+authors = ["Kris Udomwongsa <you@example.com>"]
 license = "GPLv3"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+requests = "^2.31.0"
 
 
 [build-system]
