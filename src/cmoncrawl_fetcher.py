@@ -160,7 +160,7 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
 def main():
     # set up logging
     logging.basicConfig(
-        filename="ftf.log",
+        filename="cmoncrawl-fetcher.log",
         filemode="w",
         level=logging.DEBUG,
         format="%(asctime)s - %(name)s - %(levelname)s : %(message)s",
