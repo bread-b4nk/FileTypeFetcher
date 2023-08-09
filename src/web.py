@@ -23,18 +23,25 @@ READ_BLOCK_SIZE = 65536
 
 
 def gzip_extract(source_path, dest_path, block_size=READ_BLOCK_SIZE):
-    source = gzip.open(source_path, "rb")
-    dest = open(dest_path, "wb")
+    try:
+        source = gzip.open(source_path, "rb")
+        dest = open(dest_path, "wb")
 
-    while True:
-        block = source.read(block_size)
-        if not block:
-            break
-        else:
-            dest.write(block)
+        while True:
+            block = source.read(block_size)
+            if not block:
+                break
+            else:
+                dest.write(block)
 
-    source.close()
-    dest.close()
+        source.close()
+        dest.close()
+    except Exception as err:
+        logging.error("gzip_extract failed with " + source_path)
+        logging.error(err)
+        return 1
+
+    return 0
 
 
 """
@@ -127,7 +134,8 @@ def download_and_ungzip(tmp_name, url, out_dir, output_file_name):
     output_file_path = out_dir + "/" + output_file_name
 
     # extract gzip
-    gzip_extract(gz_path, output_file_path)
+    if gzip_extract(gz_path, output_file_path) != 0:
+        return ""
 
     # delete gzip
     os.remove(gz_path)

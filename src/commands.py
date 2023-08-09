@@ -6,7 +6,9 @@ from os import mkdir, path
 def init_parser():
     parser = argparse.ArgumentParser(
         description="Python package that downloads files from common \
-        crawler's database. Only a few extensions are currently supported"
+        crawler's database.\n \
+        An example usage is `ftf.py -l 5 -f jpg png -o out_dir` \n  \
+        This'll make it download 5 jpgs and 5 pngs into out_dir"
     )
 
     parser.add_argument(
@@ -47,7 +49,7 @@ def init_parser():
     parser.add_argument(
         "-t",
         "--tolerance",
-        help="Number of fails for a given hostname before it's ignored",
+        help="Number of fails for a given hostname before we ignore this host",
         required=False,
         type=int,
         default=10,
