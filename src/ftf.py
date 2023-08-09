@@ -5,51 +5,53 @@ import os
 from urllib.parse import urlparse
 
 from commands import get_validated_args
+from config import get_config_info
 from web import download_and_ungzip, get_index_urls, save_file
 
-CONFIG_FILE_NAME = "filetype_config.json"
 PROCESS_TIMEOUT = 900  # 15 min timeout
 
-# tolerance
-tol = 1  # by default
+tol = 1  # tolerance is 1 by default
 tol_dict = {}  # it's the # of bad encounters with the hostname
 # it's called tol_dict cause we use it for tolerance with hostnames
 
 
-def run_batch(batch_cdx_urls, file_counts, out_dir, limit, cdx_name):
-    processes = []
+def run_batch(bcu, file_counts, out_dir, limit, cdx_name, config_dict):
+    batch_cdx_urls = bcu
+    num_procs = len(batch_cdx_urls)
 
     logging.info("New batch called, here's file counts and tolerance:")
     logging.info(file_counts)
     logging.info(tol_dict)
 
-    # spawn each process
-    # and have it run the download and extract func
-    for each_cdx_url in batch_cdx_urls:
-        logging.debug("Spawning process on for " + each_cdx_url)
+    # args = [file_counts, out_dir, limit, cdx_name, config_dict]
+    #    repeated_args = list(chain.from_iterable( args * num_procs))
+    itr = []
 
-        process = mp.Process(
-            target=fetch_files_in_cdx,
-            name=each_cdx_url,
-            args=(each_cdx_url, file_counts, out_dir, limit, cdx_name),
-        )
-        process.start()
-        processes.append(process)
+    for url in batch_cdx_urls:
+        itr.append([url, file_counts, out_dir, limit, cdx_name, config_dict])
 
-    logging.debug("Joining processes...")
-    # join processes afterward
-    for process in processes:
-        process.join(PROCESS_TIMEOUT)
-        exit_code = process.exitcode
-        if exit_code != 0:
-            logging.error("Something went wrong with process " + process.name)
-            logging.error("Got exit code " + str(exit_code))
-            return -1
+    with mp.Pool(processes=num_procs) as pool:
+        res = pool.starmap(fetch_from_cdx, itr)
+
+    for result in res:
+        logging.debug("Got result " + str(result))
+        if result != 0:
+            logging.error("Something went wrong with a process")
+            logging.error("Got exit code " + str(result))
+            # but we don't return error in the hopes that the others work fine
 
     return 0
 
 
-def fetch_files_in_cdx(cdx_url, file_counts, out_dir, limit, cdx_name):
+def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
+    file_counts = f_counts
+    """
+    file_counts = args[0]
+    out_dir = args[1]
+    limit = args[2]
+    cdx_name = args[3]
+    config_dict = args[4]
+    """
     # unique name pulled from url
     cdx_num = cdx_url.split("/")[-1][:-3]
     tmp_name = cdx_num + ".gz"
@@ -63,39 +65,12 @@ def fetch_files_in_cdx(cdx_url, file_counts, out_dir, limit, cdx_name):
     # whole batch
     if output == "":
         logging.error("Download and unzip failed with url " + cdx_url)
-        exit(1)
+        return 1
 
     cdx_path = output
 
     logging.debug("Opening " + cdx_path)
     cdx_file = open(cdx_path, "r")
-
-    # get data from config file
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-
-    config_path = os.path.join(dir_path, CONFIG_FILE_NAME)
-
-    logging.debug("Opening " + config_path)
-    try:
-        config = open(config_path, "r")
-    except Exception as err:
-        logging.error(
-            "Couldn't open config file \
-            expected it to be at "
-            + config_path
-        )
-        logging.error(err)
-        exit(1)
-
-    try:
-        config_dict = json.loads(config.read())
-    except Exception as err:
-        logging.error("Couldn't parse config file")
-        logging.error(err)
-        config.close()
-        exit(1)
-
-    config.close()
 
     for line in cdx_file:
         parsed_line = "{" + line.split("{")[1]
@@ -176,10 +151,10 @@ def fetch_files_in_cdx(cdx_url, file_counts, out_dir, limit, cdx_name):
         if all(count >= limit for count in file_counts.values()):
             logging.info("Downloaded sufficient files")
             logging.debug(file_counts)
-            exit(0)
+            return 0
 
     cdx_file.close()
-    exit(0)
+    return 0
 
 
 def main():
@@ -195,10 +170,10 @@ def main():
     logging.debug("Validating arguments")
     args = get_validated_args()
 
-    # check if function failed
+    # validate arguments
     if args == -1:
         logging.error("get_validated_args() failed")
-        return -1
+        return 1
 
     # storing arg values in local variables
     limit = args.limit
@@ -208,14 +183,23 @@ def main():
     global tol
     tol = args.tolerance  # reinitialize to whatever user gave
 
-    # get urls of index files
+    # get config info from config file
+    config_dict = get_config_info()
+
+    # error check config file
+    if config_dict == {}:
+        logging.error("get_config_info failed")
+        return 1
+
+    # get urls of index files by fetching from
+    # "https://index.commoncrawl.org/collinfo.json"
     logging.debug("Getting urls to index files")
     index_urls = get_index_urls()
 
     # error check index urls
     if index_urls == {}:
         logging.error("get_index_urls() failed")
-        return -1
+        return 1
 
     # using Manager() to have a dictionary as shared memory
     file_counts = mp.Manager().dict()
@@ -271,12 +255,14 @@ def main():
             # once we reach batch number of urls, spawn processes
             if len(batch_cdx_urls) >= num_procs:
                 urls = batch_cdx_urls
-                rc = run_batch(urls, file_counts, out_dir, limit, name)
+                lim = limit
+                od = out_dir
+                rc = run_batch(urls, file_counts, od, lim, name, config_dict)
 
                 if rc != 0:
                     logging.error("run_batch failed, aborting...")
                     print("Something went wrong, check the log file (ftf.log)")
-                    return -1
+                    return 1
 
                 # reset batch urls for next batch
                 batch_cdx_urls = []
