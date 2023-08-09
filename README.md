@@ -1,12 +1,12 @@
-# FileTypeFetcher (FTF)
-Downloads desired filetypes from Common Crawl data
+# CmonCrawl-Fetcher
+Downloads desired files from Common Crawl data by filetype
 
 # Usage
 
 ```
-usage: ftf.py [-h] -l <limit> -f FILETYPES [FILETYPES ...] [-p NUM_PROCS] -o OUTPUT [-t TOLERANCE]
+usage: cmoncrawl-fetcher.py [-h] -l <limit> -f FILETYPES [FILETYPES ...] [-p NUM_PROCS] -o OUTPUT [-t TOLERANCE]
 
-Python package that downloads files from common crawler's database. An example usage is `ftf.py -l 5 -f jpg png -o out_dir` This'll make it download 5 jpgs and 5 pngs into out_dir
+Python package that downloads files from common crawler's database. An example usage is `cmoncrawl-fetcher.py -l 5 -f jpg png -o out_dir` This'll make it download 5 jpgs and 5 pngs into out_dir
 
 options:
   -h, --help            show this help message and exit

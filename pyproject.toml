@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "filetype-fetcher"
+name = "cmoncrawl-fetcher"
 version = "0.1.0"
 description = "Fetches files of desired type from common crawler's database"
-authors = ["Kris Udomwongsa <you@example.com>"]
+authors = [
+	"Kris Udomwongsa <krisudomwongsa@gmail.com>",
+]
+
 license = "GPLv3"
 readme = "README.md"
 
@@ -10,6 +13,8 @@ readme = "README.md"
 python = "^3.10"
 requests = "^2.31.0"
 
+[tool.poetry.urls]
+repository = "https://github.com/bread-b4nk/FileTypeFetcher"
 
 [build-system]
 requires = ["poetry-core"]
