@@ -23,7 +23,11 @@ def init_parser():
     parser.add_argument(
         "-f",
         "--filetypes",
-        help="Desired filetypes to fetch",
+        help="Desired filetypes to fetch. "
+        + "NOTE: check the config file: filetype_config.json, "
+        + "if the desired filetype is in there, "
+        + "make sure the filetype passed in lines up. "
+        + "Put in '*' for all filetypes",
         required=True,
         nargs="+",
         type=str,

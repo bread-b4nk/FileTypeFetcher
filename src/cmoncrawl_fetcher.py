@@ -9,6 +9,7 @@ from config import get_config_info
 from web import download_and_ungzip, get_index_urls, save_file
 
 PROCESS_TIMEOUT = 900  # 15 min timeout
+CONFIG_FILENAME = "filetype_config.json"
 
 tol = 1  # tolerance is 1 by default
 tol_dict = {}  # it's the # of bad encounters with the hostname
@@ -160,7 +161,7 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
 def main():
     # set up logging
     logging.basicConfig(
-        filename="cmoncrawl-fetcher.log",
+        filename="cmoncrawl_fetcher.log",
         filemode="w",
         level=logging.DEBUG,
         format="%(asctime)s - %(name)s - %(levelname)s : %(message)s",
@@ -184,12 +185,15 @@ def main():
     tol = args.tolerance  # reinitialize to whatever user gave
 
     # get config info from config file
-    config_dict = get_config_info()
+    config_dict = get_config_info(CONFIG_FILENAME)
 
     # error check config file
     if config_dict == {}:
         logging.error("get_config_info failed")
         return 1
+
+    if filetypes == ["*"]:
+        filetypes = list(config_dict.keys())
 
     # get urls of index files by fetching from
     # "https://index.commoncrawl.org/collinfo.json"

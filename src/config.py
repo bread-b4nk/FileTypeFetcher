@@ -2,13 +2,11 @@ import json
 import logging
 import os
 
-CONFIG_FILE_NAME = "filetype_config.json"
-
 
 # tries to open config file (filetype_config.json) which should be in src
-def get_config_info():
+def get_config_info(config_filename):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(dir_path, CONFIG_FILE_NAME)
+    config_path = os.path.join(dir_path, config_filename)
     logging.debug("Opening " + config_path)
     try:
         config = open(config_path, "r")
