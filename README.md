@@ -13,7 +13,8 @@ options:
   -l <limit>, --limit <limit>
                         Number of images per filetype desired
   -f FILETYPES [FILETYPES ...], --filetypes FILETYPES [FILETYPES ...]
-                        Desired filetypes to fetch
+                        Desired filetypes to fetch NOTE: check the config file: filetype_config.json, if the desired filetype is in there, make sure the filetype passed in lines up. Put in '*' for all
+                        filetypes
   -p NUM_PROCS, --num_procs NUM_PROCS
                         Number of processes to use, default is 1
   -o OUTPUT, --output OUTPUT

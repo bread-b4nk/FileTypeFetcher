@@ -1,11 +1,10 @@
 [tool.poetry]
-name = "cmoncrawl_fetcher"
+name = "cmoncrawl-fetcher"
 version = "0.1.0"
 description = "Fetches files of desired type from common crawler's database"
 authors = [
 	"Kris Udomwongsa <krisudomwongsa@gmail.com>",
 ]
-
 license = "GPLv3"
 readme = "README.md"
 
