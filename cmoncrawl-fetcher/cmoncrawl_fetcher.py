@@ -159,17 +159,21 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
 
 
 def main():
-    # set up logging
-    logging.basicConfig(
-        filename="cmoncrawl_fetcher.log",
-        filemode="w",
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s : %(message)s",
-    )
-
     # get arguments
-    logging.debug("Validating arguments")
     args = get_validated_args()
+
+    try:
+        # set up logging
+        logging.basicConfig(
+            filename=args.log,
+            filemode="w",
+            level=logging.DEBUG,
+            format="%(asctime)s - %(filename)s - %(levelname)s : %(message)s",
+        )
+    except Exception as err:
+        print("Failed to set up logging file!")
+        print(err)
+        return 1
 
     # validate arguments
     if args == -1:
@@ -210,15 +214,18 @@ def main():
     # the dictionary will map file types to the
     # number of files downloaded
 
-    logging.debug("Setting up directories for each extension")
+    logging.debug("Setting up directories for each extension:")
+
     for extension in filetypes:
         file_counts[extension] = 0
 
         # initialize directories too
         if not os.path.exists(out_dir + extension):
             os.makedirs(out_dir + extension)
+            logging.debug("\tdirectory: " + out_dir + extension)
 
     logging.debug("Looping through urls and starting batches")
+
     for name in index_urls:
         if not os.path.exists(out_dir + name):
             os.makedirs(out_dir + name)

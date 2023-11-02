@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import time
 
 import requests
 
@@ -114,9 +115,14 @@ def download_and_ungzip(tmp_name, url, out_dir, output_file_name):
         logging.error(err)
         return ""
 
+    # if we get the slowdown warning, sleep then exit
+    if response.status_code == 503:
+        logging.debug("Let's slow down, sleeping Zzz...")
+        time.sleep(8)
+        return ""
+
     if response.status_code != 200:
         logging.error("requests.get got status " + str(response.status_code))
-
         return ""
 
     # path to output file
@@ -176,7 +182,10 @@ def save_file(url, out_dir, filetype):
         )
         return -1
 
-    tmp_filename = out_dir + url.split("/")[-1]
+    if url.split("/")[-1] == "":  # if no info after hostname
+        tmp_filename = out_dir + "tmp"
+    else:
+        tmp_filename = out_dir + url.split("/")[-1]
 
     logging.debug("Temporary filename: " + tmp_filename)
 

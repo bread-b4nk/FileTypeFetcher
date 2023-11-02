@@ -59,6 +59,14 @@ def init_parser():
         default=10,
     )
 
+    parser.add_argument(
+        "--log",
+        help="Log file to store debug and error messages",
+        required=False,
+        type=str,
+        default="cmoncrawl.log",
+    )
+
     return parser
 
 
