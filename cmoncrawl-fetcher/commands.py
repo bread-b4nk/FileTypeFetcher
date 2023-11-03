@@ -14,7 +14,7 @@ def init_parser():
     parser.add_argument(
         "-l",
         "--limit",
-        help="Number of images per filetype desired",
+        help="Max number of files to download (for each filetype)",
         required=True,
         metavar="<limit>",
         type=int,

@@ -168,7 +168,8 @@ def main():
             filename=args.log,
             filemode="w",
             level=logging.DEBUG,
-            format="%(asctime)s - %(filename)s - %(levelname)s : %(message)s",
+            format="%(asctime)s - %(processName)s - %(filename)s - "
+            + "%(levelname)s : %(message)s",
         )
     except Exception as err:
         print("Failed to set up logging file!")
