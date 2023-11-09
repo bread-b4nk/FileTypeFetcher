@@ -185,7 +185,8 @@ def save_file(url, out_dir, filetype):
     if url.split("/")[-1] == "":  # if no info after hostname
         tmp_filename = out_dir + "tmp"
     else:
-        tmp_filename = out_dir + url.split("/")[-1]
+        hash_of_name = hashlib.md5(url.encode()).hexdigest()
+        tmp_filename = out_dir + hash_of_name
 
     logging.debug("Temporary filename: " + tmp_filename)
 
