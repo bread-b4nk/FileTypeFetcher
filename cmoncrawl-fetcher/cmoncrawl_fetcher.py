@@ -81,10 +81,12 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
             cdx_data = json.loads(parsed_line)
             cdx_mime = cdx_data["mime-detected"]
             cdx_url = cdx_data["url"]
-            cdx_ext = "." + cdx_url.split(".")[-1]
 
-            if cdx_data["status"] != "200":
-                continue  # move onto next line in cdx_file
+            # TODO: instead of pulling cdx_ext from the end of the url
+            # we use the mime to lookup the config, and pull out
+            # the file extension through there
+            # cdx_ext = "." + cdx_url.split(".")[-1]
+            potential_cdx_ext = "." + cdx_url.split(".")[-1]
 
         except KeyError:
             continue  # move onto next line in cdx_file
@@ -123,6 +125,7 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
                 continue  # move onto next filetype
 
             dest = out_dir + filetype
+
             # see if config lines up
             if target_mime == cdx_mime:
                 logging.debug("Saving " + cdx_url + " to " + dest + "...")
@@ -135,7 +138,8 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
                     hostname = urlparse(cdx_url).hostname
                     tol_dict[hostname] += 1
 
-            elif target_mime is None and cdx_ext in target_exts:
+            # if we didn't get a mime, we rely on extension
+            elif potential_cdx_ext in target_exts:
                 logging.debug("Saving " + cdx_url + " to " + dest + "...")
 
                 dest = out_dir + filetype
@@ -149,6 +153,7 @@ def fetch_from_cdx(cdx_url, f_counts, out_dir, limit, cdx_name, config_dict):
                     hostname = urlparse(cdx_url).hostname
                     tol_dict[hostname] += 1
 
+        # if we have enough files
         if all(count >= limit for count in file_counts.values()):
             logging.info("Downloaded sufficient files")
             logging.debug(file_counts)
